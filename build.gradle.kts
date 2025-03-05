@@ -20,6 +20,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:2.3.5")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
+    implementation("io.ktor:ktor-server-websockets:2.3.5")
 }
 
 tasks.test {
