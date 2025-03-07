@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     application
 }
 
@@ -20,6 +21,9 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:2.3.5")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
+    implementation("org.jetbrains.exposed:exposed:0.17.14")
+    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.slf4j:slf4j-simple:2.0.9")
 }
 
 tasks.test {
