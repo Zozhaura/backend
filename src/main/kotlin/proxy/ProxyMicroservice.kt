@@ -29,16 +29,6 @@ fun Application.myProxy() {
     }
 
     routing {
-        // Здесь в целом все написано, мы просто передаем запрос нужному микросервису
-        // Единственное что здесь потребуется менять - это добавлять различные варианты запросов
-        // по типу post, delete и тд
-        // Также очевидно может потребоваться отредактировать существующий метод
-        // Например action может быть не нужен вообще или будет Path-переменные или Query-параметры
-        get("/devices/{action}") {
-            val action = call.parameters["action"]
-            val response: String = client.get("http://localhost:8081/$action").body()
-            call.respond(response)
-        }
         get("/food/{action}") {
             val action = call.parameters["action"]
             val response: String = client.get("http://localhost:8082/$action").body()
