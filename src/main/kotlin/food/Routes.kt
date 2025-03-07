@@ -7,7 +7,7 @@ import io.ktor.server.routing.*
 fun Application.configureRouting() {
     routing {
         get("/hi") {
-            val recipe = getFullRecipeByName("Яично-масляный соус")
+            val recipe = getFullRecipeByName("Яблочный суп со сметаной")
             if (recipe != null) {
                 call.respond(recipe)
             } else {

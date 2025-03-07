@@ -3,6 +3,7 @@ package food
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.Database
+import java.io.File
 import java.util.*
 
 object Recipe : Table("recipe") {
@@ -46,7 +47,8 @@ object RecipeIngredient : Table("recipe_ingredient") {
 
 fun initDatabase() {
     val properties = Properties()
-    properties.load(ClassLoader.getSystemResourceAsStream("database.properties"))
+    val file = File(".database.properties")
+    properties.load(file.inputStream())
 
     val url = properties.getProperty("db.url")
     val driver = properties.getProperty("db.driver")
