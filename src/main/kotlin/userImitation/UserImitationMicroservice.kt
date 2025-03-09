@@ -43,19 +43,19 @@ fun Application.myUserImitation() {
 
 suspend fun simulateUsers(client: HttpClient) {
     repeat(10_000) { userId ->
-        launch {
-            while (true) {
-                delay(Random.nextLong(500, 5000))
-                val action = listOf("search", "recommendation").random()
-                val query = listOf("apple", "banana", "salad", "chicken", "pasta").random()
-                try {
-                    val response: String = client.get("http://localhost:8082/$action?query=$query").body()
-                    logAction(client, userId, action, query, response)
-                } catch (e: Exception) {
-                    logAction(client, userId, action, query, "error: ${e.message}")
-                }
-            }
-        }
+//        launch {
+//            while (true) {
+//                delay(Random.nextLong(500, 5000))
+//                val action = listOf("search", "recommendation").random()
+//                val query = listOf("apple", "banana", "salad", "chicken", "pasta").random()
+//                try {
+//                    val response: String = client.get("http://localhost:8082/$action?query=$query").body()
+//                    logAction(client, userId, action, query, response)
+//                } catch (e: Exception) {
+//                    logAction(client, userId, action, query, "error: ${e.message}")
+//                }
+//            }
+//        }
     }
 }
 

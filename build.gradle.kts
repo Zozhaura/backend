@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     application
 }
 
@@ -28,6 +29,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
     implementation("com.clickhouse:clickhouse-jdbc:0.4.6")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation("com.auth0:java-jwt:4.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 }
 
 tasks.test {
@@ -35,7 +38,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
 
 application {
