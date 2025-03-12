@@ -5,19 +5,19 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.Database
 import java.io.File
 import java.util.*
-
+//Database.kt
 object Recipe : Table("recipe") {
     val id = integer("id").autoIncrement()
     val name = text("name")
     val preparationMethod = text("preparation_method")
     val categoryId = integer("category_id").nullable()
-//    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }
 
 object Category : Table("category") {
     val id = integer("id").autoIncrement()
     val name = text("name")
-//    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }
 
 object Nutrition : Table("nutrition") {
@@ -28,27 +28,26 @@ object Nutrition : Table("nutrition") {
     val carbohydrates = double("carbohydrates")
     val dietaryFiber = double("dietary_fiber").nullable()
     val water = double("water").nullable()
-//    override val primaryKey = PrimaryKey(recipeId)
+    override val primaryKey = PrimaryKey(recipeId)
 }
 
 object Ingredient : Table("ingredient") {
     val id = integer("id").autoIncrement()
     val name = text("name")
-//    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(id)
 }
 
 object RecipeIngredient : Table("recipe_ingredient") {
     val recipeId = integer("recipe_id").references(Recipe.id, onDelete = ReferenceOption.CASCADE)
     val ingredientId = integer("ingredient_id").references(Ingredient.id, onDelete = ReferenceOption.CASCADE)
     val quantity = text("quantity")
-//    override val primaryKey = PrimaryKey(recipeId, ingredientId)
+    override val primaryKey = PrimaryKey(recipeId, ingredientId)
 }
 
 
 fun initDatabase() {
     val properties = Properties()
-    val file = File(".database.properties")
-    properties.load(file.inputStream())
+    properties.load(ClassLoader.getSystemResourceAsStream("database.properties"))
 
     val url = properties.getProperty("db.url")
     val driver = properties.getProperty("db.driver")

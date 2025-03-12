@@ -3,7 +3,7 @@ package food
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-
+//Routes.kt
 fun Application.configureRouting() {
     routing {
         get("/hi") {
@@ -14,5 +14,11 @@ fun Application.configureRouting() {
                 call.respond(mapOf("error" to "Recipe not found"))
             }
         }
+        get("/recipes/search") {
+            val query = call.request.queryParameters["name"] ?: ""
+            val recipes = RecipeService.searchRecipesByName(query)
+            call.respond(recipes)
+        }
+
     }
 }

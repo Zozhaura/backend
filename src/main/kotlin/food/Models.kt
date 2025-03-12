@@ -1,7 +1,7 @@
 package food
 
 import kotlinx.serialization.Serializable
-
+//Models.kt
 @Serializable
 data class FullRecipeDTO(
     val id: Int,
@@ -24,3 +24,11 @@ data class NutritionDTO(
 
 @Serializable
 data class IngredientDTO(val name: String, val quantity: String)
+
+@Serializable
+data class RecipeShortDTO(
+    val id: Int,
+    val name: String,
+    val nutrition: NutritionDTO
+)
+
