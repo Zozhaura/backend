@@ -57,35 +57,4 @@ fun initDatabase() {
     Database.connect(url, driver = driver, user = user, password = password)
 }
 
-fun getFullRecipeByName(recipeName: String): FullRecipeDTO? {
-    return transaction {
-        val recipeRow = Recipe.select { Recipe.name eq recipeName }.singleOrNull() ?: return@transaction null
-        val category = recipeRow[Recipe.categoryId]?.let { categoryId ->
-            Category.select { Category.id eq categoryId }.singleOrNull()?.get(Category.name)
-        }
-        val nutrition = Nutrition.select { Nutrition.recipeId eq recipeRow[Recipe.id] }.singleOrNull()
-        val ingredients = RecipeIngredient
-            .join(Ingredient, JoinType.INNER, RecipeIngredient.ingredientId, Ingredient.id)
-            .select { RecipeIngredient.recipeId eq recipeRow[Recipe.id] }
-            .map { IngredientDTO(it[Ingredient.name], it[RecipeIngredient.quantity]) }
-
-        FullRecipeDTO(
-            id = recipeRow[Recipe.id],
-            name = recipeRow[Recipe.name],
-            preparationMethod = recipeRow[Recipe.preparationMethod],
-            category = category,
-            nutrition = nutrition?.let {
-                NutritionDTO(
-                    it[Nutrition.calories],
-                    it[Nutrition.proteins],
-                    it[Nutrition.fats],
-                    it[Nutrition.carbohydrates],
-                    it[Nutrition.dietaryFiber],
-                    it[Nutrition.water]
-                )
-            },
-            ingredients = ingredients
-        )
-    }
-}
 
