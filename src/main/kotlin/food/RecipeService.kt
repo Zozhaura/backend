@@ -104,5 +104,45 @@ object RecipeService {
             }
         }
     }
+
+    fun getRecipeById(recipeId: Int): FullRecipeDTO? {
+        return transaction {
+            // Ищем рецепт по ID
+            val recipeRow = Recipe.select { Recipe.id eq recipeId }.singleOrNull() ?: return@transaction null
+
+            // Ищем категорию (если есть)
+            val category = recipeRow[Recipe.categoryId]?.let { categoryId ->
+                Category.select { Category.id eq categoryId }.singleOrNull()?.get(Category.name)
+            }
+
+            // Ищем КБЖУ (если есть)
+            val nutrition = Nutrition.select { Nutrition.recipeId eq recipeId }.singleOrNull()
+
+            // Получаем список ингредиентов
+            val ingredients = RecipeIngredient
+                .join(Ingredient, JoinType.INNER, RecipeIngredient.ingredientId, Ingredient.id)
+                .select { RecipeIngredient.recipeId eq recipeId }
+                .map { IngredientDTO(it[Ingredient.name], it[RecipeIngredient.quantity]) }
+
+            // Собираем объект FullRecipeDTO
+            FullRecipeDTO(
+                id = recipeRow[Recipe.id],
+                name = recipeRow[Recipe.name],
+                preparationMethod = recipeRow[Recipe.preparationMethod],
+                category = category,
+                nutrition = nutrition?.let {
+                    NutritionDTO(
+                        calories = it[Nutrition.calories],
+                        proteins = it[Nutrition.proteins],
+                        fats = it[Nutrition.fats],
+                        carbohydrates = it[Nutrition.carbohydrates],
+                        dietaryFiber = it[Nutrition.dietaryFiber],
+                        water = it[Nutrition.water]
+                    )
+                },
+                ingredients = ingredients
+            )
+        }
+    }
 }
 
