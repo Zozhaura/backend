@@ -103,7 +103,8 @@ fun Application.authModule() {
                     gender = request.gender,
                     goalWeight = request.goalWeight
                 )
-                call.respond(HttpStatusCode.Created, "User registered successfully")
+                val token = generateToken(request.username)
+                call.respond(HttpStatusCode.Created, AuthResponse(token))
             }
         }
 
