@@ -7,7 +7,7 @@ import io.ktor.server.routing.*
 //Routes.kt
 fun Application.configureRouting() {
     routing {
-        get("/recipes/search") {
+        get("/recipes_search") {
             val query = call.request.queryParameters["name"]
             val categories = call.request.queryParameters.getAll("category")
             val includeIngredients = call.request.queryParameters.getAll("includeIngredients")
