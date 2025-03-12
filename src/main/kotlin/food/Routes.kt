@@ -9,10 +9,19 @@ fun Application.configureRouting() {
     routing {
         get("/recipes/search") {
             val query = call.request.queryParameters["name"]
-            val categories = call.request.queryParameters.getAll("category") // Получаем список категорий
-            val recipes = RecipeService.searchRecipesByName(query, categories)
+            val categories = call.request.queryParameters.getAll("category")
+            val includeIngredients = call.request.queryParameters.getAll("includeIngredients")
+            val excludeIngredients = call.request.queryParameters.getAll("excludeIngredients")
+
+            val recipes = RecipeService.searchRecipesByName(
+                query = query,
+                categories = categories,
+                includeIngredients = includeIngredients,
+                excludeIngredients = excludeIngredients
+            )
             call.respond(recipes)
         }
+
 
         get("/recipes/{id}") {
             val recipeId = call.parameters["id"]?.toIntOrNull()
