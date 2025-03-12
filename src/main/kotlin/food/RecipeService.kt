@@ -46,26 +46,62 @@ object RecipeService {
 //        }
 //    }
 
-    fun searchRecipesByName(query: String): List<RecipeShortDTO> {
+    fun searchRecipesByName(query: String?, category: String?): List<RecipeShortDTO> {
         return transaction {
-            Recipe
-                .leftJoin(Nutrition, { Recipe.id }, { Nutrition.recipeId }) // Присоединяем Nutrition
-                .slice(Recipe.id, Recipe.name, Nutrition.calories, Nutrition.proteins, Nutrition.fats, Nutrition.carbohydrates)
-                .select { Recipe.name.castTo<String>(TextColumnType()).lowerCase() like "%${query.lowercase()}%" }
-                .map {
-                    RecipeShortDTO(
-                        id = it[Recipe.id],
-                        name = it[Recipe.name],
-                        nutrition = NutritionDTO(
-                            calories = it[Nutrition.calories] ?: 0.0,
-                            proteins = it[Nutrition.proteins] ?: 0.0,
-                            fats = it[Nutrition.fats] ?: 0.0,
-                            carbohydrates = it[Nutrition.carbohydrates] ?: 0.0,
-                            dietaryFiber = null,
-                            water = null
+            // Если ни query, ни category нет – возвращаем первые 30 рецептов
+            if (query.isNullOrBlank() && category.isNullOrBlank()) {
+                return@transaction Recipe
+                    .leftJoin(Nutrition, { Recipe.id }, { Nutrition.recipeId })
+                    .slice(Recipe.id, Recipe.name, Nutrition.calories, Nutrition.proteins, Nutrition.fats, Nutrition.carbohydrates)
+                    .selectAll()
+                    .limit(30)
+                    .map {
+                        RecipeShortDTO(
+                            id = it[Recipe.id],
+                            name = it[Recipe.name],
+                            nutrition = NutritionDTO(
+                                calories = it[Nutrition.calories] ?: 0.0,
+                                proteins = it[Nutrition.proteins] ?: 0.0,
+                                fats = it[Nutrition.fats] ?: 0.0,
+                                carbohydrates = it[Nutrition.carbohydrates] ?: 0.0,
+                                dietaryFiber = null,
+                                water = null
+                            )
                         )
+                    }
+            }
+
+            // Базовый запрос с фильтром по названию
+            val baseQuery = Recipe
+                .leftJoin(Nutrition, { Recipe.id }, { Nutrition.recipeId })
+                .leftJoin(Category, { Recipe.categoryId }, { Category.id })
+                .slice(Recipe.id, Recipe.name, Nutrition.calories, Nutrition.proteins, Nutrition.fats, Nutrition.carbohydrates)
+                .selectAll()
+
+            // Если передано название – фильтруем по нему
+            if (!query.isNullOrBlank()) {
+                baseQuery.andWhere { Recipe.name.castTo<String>(TextColumnType()).lowerCase() like "%${query.lowercase()}%" }
+            }
+
+            // Если передана категория – фильтруем по ней
+            if (!category.isNullOrBlank()) {
+                baseQuery.andWhere { Category.name eq category }
+            }
+
+            baseQuery.map {
+                RecipeShortDTO(
+                    id = it[Recipe.id],
+                    name = it[Recipe.name],
+                    nutrition = NutritionDTO(
+                        calories = it[Nutrition.calories] ?: 0.0,
+                        proteins = it[Nutrition.proteins] ?: 0.0,
+                        fats = it[Nutrition.fats] ?: 0.0,
+                        carbohydrates = it[Nutrition.carbohydrates] ?: 0.0,
+                        dietaryFiber = null,
+                        water = null
                     )
-                }
+                )
+            }
         }
     }
 }

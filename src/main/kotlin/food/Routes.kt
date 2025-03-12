@@ -15,10 +15,12 @@ fun Application.configureRouting() {
             }
         }
         get("/recipes/search") {
-            val query = call.request.queryParameters["name"] ?: ""
-            val recipes = RecipeService.searchRecipesByName(query)
+            val query = call.request.queryParameters["name"]
+            val category = call.request.queryParameters["category"]
+            val recipes = RecipeService.searchRecipesByName(query, category)
             call.respond(recipes)
         }
+
 
     }
 }
