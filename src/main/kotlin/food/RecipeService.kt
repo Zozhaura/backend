@@ -2,6 +2,7 @@ package food
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 
 object RecipeService {
@@ -116,6 +117,27 @@ object RecipeService {
                 ingredients = ingredients
             )
         }
+    }
+
+    fun getRecommendedRecipes(excludeIngredients: List<String>? = null): List<RecipeShortDTO> {
+        // Получаем текущее время на сервере
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+        // Определяем категории в зависимости от времени
+        val categories = when (currentHour) {
+            in 4 until 12 -> listOf("Каши", "Выпечка")
+            in 12 until 17 -> listOf("Первые блюда", "Вторые блюда")
+            in 17 until 22 -> listOf("Салаты")
+            else -> listOf("Закуски")
+        }
+
+        // Вызываем searchRecipesByName с определенными категориями и excludeIngredients
+        return searchRecipesByName(
+            query = null,
+            categories = categories,
+            includeIngredients = null,
+            excludeIngredients = excludeIngredients
+        )
     }
 }
 

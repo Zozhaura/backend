@@ -21,6 +21,11 @@ fun Application.configureRouting() {
             )
             call.respond(recipes)
         }
+        get("/recipes/recommendation") {
+            val excludeIngredients = call.request.queryParameters.getAll("excludeIngredients")
+            val recipes = RecipeService.getRecommendedRecipes(excludeIngredients)
+            call.respond(recipes)
+        }
 
 
         get("/recipes/{id}") {
