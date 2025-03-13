@@ -6,11 +6,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object ProductService {
     fun searchProductsByName(query: String?): List<ProductDTO> {
         return transaction {
-            // Если запрос пустой, возвращаем первые 30 записей
             if (query.isNullOrBlank()) {
                 return@transaction Product
                     .selectAll()
-                    .limit(30)
                     .map {
                         ProductDTO(
                             id = it[Product.id],
@@ -23,7 +21,6 @@ object ProductService {
                     }
             }
 
-            // Выполняем поиск по подстроке (без учета регистра)
             Product
                 .select { Product.name.lowerCase() like "%${query.lowercase()}%" }
                 .map {

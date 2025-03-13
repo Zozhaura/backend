@@ -13,7 +13,6 @@ object RecipeService {
         excludeIngredients: List<String>? = null
     ): List<RecipeShortDTO> {
         return transaction {
-            // Базовый запрос
             val baseQuery = Recipe
                 .leftJoin(Nutrition, { Recipe.id }, { Nutrition.recipeId })
                 .leftJoin(Category, { Recipe.categoryId }, { Category.id })
