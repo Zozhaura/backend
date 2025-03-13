@@ -27,25 +27,25 @@ fun Application.configureRouting() {
             call.respond(recipes)
         }
 
-
         get("/recipes/{id}") {
             val recipeId = call.parameters["id"]?.toIntOrNull()
-
-            // Проверяем корректность ID
             if (recipeId == null) {
                 call.respond(HttpStatusCode.BadRequest, "Некорректный ID рецепта")
                 return@get
             }
-
-            // Получаем рецепт
             val recipe = RecipeService.getRecipeById(recipeId)
-
-            // Если не найден — отправляем 404
             if (recipe == null) {
                 call.respond(HttpStatusCode.NotFound, "Рецепт с ID $recipeId не найден")
             } else {
                 call.respond(recipe)
             }
+        }
+
+
+        get("/products/search") {
+            val query = call.request.queryParameters["name"]
+            val products = ProductService.searchProductsByName(query)
+            call.respond(products)
         }
 
     }

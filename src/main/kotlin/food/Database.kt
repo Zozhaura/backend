@@ -44,6 +44,16 @@ object RecipeIngredient : Table("recipe_ingredient") {
     override val primaryKey = PrimaryKey(recipeId, ingredientId)
 }
 
+object Product : Table("product") {
+    val id = integer("id").autoIncrement()
+    val name = varchar("name", 255)
+    val calories = double("calories")
+    val proteins = double("proteins")
+    val fats = double("fats")
+    val carbohydrates = double("carbohydrates")
+    override val primaryKey = PrimaryKey(id)
+}
+
 
 fun initDatabase() {
     val properties = Properties()

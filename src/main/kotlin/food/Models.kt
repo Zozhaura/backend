@@ -32,3 +32,12 @@ data class RecipeShortDTO(
     val nutrition: NutritionDTO
 )
 
+@Serializable
+data class ProductDTO(
+    val id: Int,
+    val name: String,
+    val calories: Double,
+    val proteins: Double,
+    val fats: Double,
+    val carbohydrates: Double
+)
