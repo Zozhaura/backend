@@ -11,7 +11,7 @@ fun Application.configureRouting() {
          * Поиск рецептов.
          *
          * **HTTP Метод:** GET
-         * **URL:** `/recipes_recommendation`
+         * **URL:** `/recipes_search`
          *
          * @param name (query параметр) Название рецепта, необязателен.
          * @param category (query параметр) категория рецептов, необязателен.
@@ -21,40 +21,48 @@ fun Application.configureRouting() {
          *
          * **Пример запроса:**
          * ```
-         * GET GET /recipes_search?name=salad&category=vegetarian&category=healthy&includeIngredients=tomato&includeIngredients=cucumber&excludeIngredients=onion&excludeIngredients=garlic
-         *
+         * GET /recipes_search?name=варенье&category=Варенье%20и%20джемы&includeIngredients=лимонная%20кислота&includeIngredients=вода&excludeIngredients=груша         *
          * ```
          *
          * **Пример ответа (200 OK):**
          * ```json
          * [
          *     {
-         *         "id": 1423,
-         *         "name": "Салат из сырой моркови м яблоками",
+         *         "id": 4,
+         *         "name": "Варенье из айвы",
          *         "nutrition": {
-         *             "calories": 82.2,
-         *             "proteins": 1.2,
-         *             "fats": 4.8,
-         *             "carbohydrates": 9.1,
+         *             "calories": 221.8,
+         *             "proteins": 0.1,
+         *             "fats": 0.1,
+         *             "carbohydrates": 58.7,
          *             "dietaryFiber": null,
          *             "water": null
          *         }
          *     },
          *     {
-         *         "id": 1424,
-         *         "name": "Салат из сырой свеклы",
+         *         "id": 5,
+         *         "name": "Варенье из арбузных корок",
          *         "nutrition": {
-         *             "calories": 76.7,
-         *             "proteins": 1.2,
-         *             "fats": 4.7,
-         *             "carbohydrates": 8.0,
+         *             "calories": 219.9,
+         *             "proteins": 0.2,
+         *             "fats": 0.0,
+         *             "carbohydrates": 58.4,
          *             "dietaryFiber": null,
          *             "water": null
          *         }
          *     },
-         *     .
-         *     .
-         *     .
+         *     {
+         *         "id": 15,
+         *         "name": "Варенье из жимолости",
+         *         "nutrition": {
+         *             "calories": 218.2,
+         *             "proteins": 0.0,
+         *             "fats": 0.0,
+         *             "carbohydrates": 58.2,
+         *             "dietaryFiber": null,
+         *             "water": null
+         *         }
+         *     }
          * ]
          * ```
          *
@@ -77,7 +85,7 @@ fun Application.configureRouting() {
         }
 
         /**
-         * Запрос на получениt списка рекомендованных блюдна основе времени на сервере и исключающий ингредиенты, которые указал пользователь.
+         * Запрос на получение списка рекомендованных блюдна основе времени на сервере и исключающий ингредиенты, которые указал пользователь.
          *
          * **HTTP Метод:** GET
          * **URL:** `/recipes_recommendation`
