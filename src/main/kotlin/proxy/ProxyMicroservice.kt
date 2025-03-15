@@ -13,6 +13,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.contentType
 import kotlinx.serialization.json.Json
 
 fun main() {
@@ -31,10 +33,20 @@ fun Application.myProxy() {
     }
 
     routing {
-        get("/food/{action}") {
-            val action = call.parameters["action"]
-            val response: String = client.get("http://localhost:8082/$action").body()
-            call.respond(response)
+        route("/food/{action}") {
+            handle {
+                val fullUrl = call.request.uri.removePrefix("/food/")
+
+                val action = call.parameters["action"]
+                val requestBody = call.receiveOrNull<String>()
+                val response: String = client.request("http://localhost:8082/$fullUrl") {
+                    method = call.request.httpMethod
+                    contentType(ContentType.Application.Json)
+                    requestBody?.let { setBody(it) }
+                    headers.appendAll(call.request.headers)
+                }.body()
+                call.respond(response)
+            }
         }
 
         get("/logs/{action}") {
@@ -63,4 +75,5 @@ fun Application.myProxy() {
             }
         }
     }
+
 }

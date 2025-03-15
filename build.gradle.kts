@@ -29,8 +29,12 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
     implementation("com.clickhouse:clickhouse-jdbc:0.4.6")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.slf4j:slf4j-simple:2.0.9")
     implementation("com.auth0:java-jwt:4.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
 }
 
 tasks.test {
