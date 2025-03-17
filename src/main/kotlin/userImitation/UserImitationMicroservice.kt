@@ -37,35 +37,46 @@ fun Application.myUserImitation() {
 
         get("/start") {
             launch { simulateUsers(client) }
+            call.respond(mapOf("status" to "started"))
         }
     }
 }
 
 suspend fun simulateUsers(client: HttpClient) {
-    repeat(10_000) { userId ->
-//        launch {
-//            while (true) {
-//                delay(Random.nextLong(500, 5000))
-//                val action = listOf("search", "recommendation").random()
-//                val query = listOf("apple", "banana", "salad", "chicken", "pasta").random()
-//                try {
-//                    val response: String = client.get("http://localhost:8082/$action?query=$query").body()
-//                    logAction(client, userId, action, query, response)
-//                } catch (e: Exception) {
-//                    logAction(client, userId, action, query, "error: ${e.message}")
-//                }
-//            }
-//        }
-    }
-}
+    while (true) {
+        val action = when (Random.nextInt(4)) {
+            0 -> "recipes_search"
+            1 -> "recipes_recommendation"
+            2 -> "recipe"
+            3 -> "products_search"
+            else -> "recipes_search"
+        }
 
-suspend fun logAction(client: HttpClient, userId: Int, action: String, query: String, result: String) {
-    val logData = mapOf(
-        "level" to "INFO",
-        "message" to "User $userId performed $action with query: $query. Result: $result",
-        "serviceName" to "userImitation",
-        "status" to 200,
-        "executionTime" to Random.nextLong(10, 100)
-    )
-    client.post("http://localhost:8083/log") { setBody(logData) }
+        val url = when (action) {
+            "recipes_search" -> {
+                val query = listOf("name", "category", "includeIngredients", "excludeIngredients").random()
+                val value = listOf("варенье", "лимон", "сахар", "вода").random()
+                "/food/recipes_search?$query=$value"
+            }
+            "recipes_recommendation" -> "/food/recipes_recommendation"
+            "recipe" -> {
+                val id = Random.nextInt(1, 1000)
+                "/food/recipe?id=$id"
+            }
+            "products_search" -> {
+                val query = listOf("молоко", "сахар", "лимон", "вода").random()
+                "/food/products_search?name=$query"
+            }
+            else -> "/food/recipes_search"
+        }
+
+        try {
+            val response: String = client.get("http://localhost:8080$url").body()
+            println("Request sent to $url")
+        } catch (e: Exception) {
+            println("Failed to send request to $url: ${e.message}")
+        }
+
+        delay(1000)
+    }
 }
