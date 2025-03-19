@@ -1,3 +1,5 @@
+package auth
+
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.util.*
