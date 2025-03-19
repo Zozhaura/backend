@@ -1,3 +1,4 @@
+import auth.UserRepository
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
@@ -28,8 +29,6 @@ data class UserInfo(
     val gender: String,
     val goalWeight: Double
 )
-
-val users = mutableMapOf<String, UserInfo>()
 
 @Serializable
 data class AuthRequest(
@@ -81,7 +80,7 @@ fun Application.authModule() {
     routing {
         post("/login") {
             val request = call.receive<LoginRequest>()
-            val user = users[request.username]
+            val user = UserRepository.findUserByUsername(request.username)
             if (user != null && user.passwordHash == hashPassword(request.password)) {
                 call.respond(AuthResponse(generateToken(request.username)))
             } else {
@@ -91,10 +90,10 @@ fun Application.authModule() {
 
         post("/register") {
             val request = call.receive<AuthRequest>()
-            if (users.containsKey(request.username)) {
+            if (UserRepository.findUserByUsername(request.username) != null) {
                 call.respond(HttpStatusCode.Conflict, "User already exists")
             } else {
-                users[request.username] = UserInfo(
+                val newUser = UserInfo(
                     username = request.username,
                     passwordHash = hashPassword(request.password),
                     name = request.name,
@@ -103,8 +102,8 @@ fun Application.authModule() {
                     gender = request.gender,
                     goalWeight = request.goalWeight
                 )
-                val token = generateToken(request.username)
-                call.respond(HttpStatusCode.Created, AuthResponse(token))
+                UserRepository.createUser(newUser)
+                call.respond(HttpStatusCode.Created, AuthResponse(generateToken(request.username)))
             }
         }
 
@@ -117,7 +116,7 @@ fun Application.authModule() {
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
-                val user = users[username]
+                val user = UserRepository.findUserByUsername(username)
                 if (user != null) {
                     call.respond(UserResponse(
                         username = user.username,
