@@ -24,6 +24,7 @@ fun Application.myDevices() {
     routing {
         val stepsChannel = Channel<Int>(Channel.CONFLATED)
         val maxPulse = AtomicInteger(0)
+        val minPulse = AtomicInteger(Int.MAX_VALUE)
 
         webSocket("/steps") {
             var steps = 0
@@ -43,6 +44,9 @@ fun Application.myDevices() {
                 if (pulse > maxPulse.get()) {
                     maxPulse.set(pulse)
                 }
+                if (pulse < minPulse.get()) {
+                    minPulse.set(pulse)
+                }
                 send("$pulse")
             }
         }
@@ -52,6 +56,14 @@ fun Application.myDevices() {
             while (true) {
                 delay(2000)
                 send("${maxPulse.get()}")
+            }
+        }
+
+        webSocket("/minpulse") {
+            send("${minPulse.get()}")
+            while (true) {
+                delay(2000)
+                send("${minPulse.get()}")
             }
         }
 
