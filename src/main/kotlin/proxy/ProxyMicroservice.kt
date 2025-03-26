@@ -72,10 +72,16 @@ fun Application.myProxy() {
 
                 val responseBytes = httpResponse.body<ByteArray>()
                 val responseContentType = httpResponse.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+                val status = httpResponse.status
 
-                call.respondBytes(responseBytes, responseContentType ?: ContentType.Application.Json)
+                call.respondBytes(
+                    bytes = responseBytes,
+                    contentType = responseContentType ?: ContentType.Application.Json,
+                    status = status
+                )
             }
         }
+
 
     }
 
