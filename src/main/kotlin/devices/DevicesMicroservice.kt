@@ -9,6 +9,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToInt
 
 fun main() {
@@ -22,6 +23,7 @@ fun Application.myDevices() {
 
     routing {
         val stepsChannel = Channel<Int>(Channel.CONFLATED)
+        val maxPulse = AtomicInteger(0)
 
         webSocket("/steps") {
             var steps = 0
@@ -38,7 +40,18 @@ fun Application.myDevices() {
             while (true) {
                 delay(2000)
                 val pulse = (55..75).random()
+                if (pulse > maxPulse.get()) {
+                    maxPulse.set(pulse)
+                }
                 send("$pulse")
+            }
+        }
+
+        webSocket("/maxpulse") {
+            send("${maxPulse.get()}")
+            while (true) {
+                delay(2000)
+                send("${maxPulse.get()}")
             }
         }
 
