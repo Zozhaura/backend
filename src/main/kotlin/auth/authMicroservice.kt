@@ -56,6 +56,14 @@ data class UserResponse(
     val gender: String,
     val goalWeight: Double
 )
+@Serializable
+data class UpdateNameRequest(val name: String)
+
+@Serializable
+data class UpdateHeightRequest(val height: Double)
+
+@Serializable
+data class UpdateWeightRequest(val weight: Double)
 
 fun hashPassword(password: String): String {
     return MessageDigest.getInstance("SHA-256")
@@ -106,6 +114,58 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Created, AuthResponse(generateToken(request.username)))
             }
         }
+
+        post("/updatename") {
+            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+            if (token == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Missing token")
+                return@post
+            }
+            try {
+                val decodedJWT = verifier.verify(token)
+                val username = decodedJWT.getClaim("username").asString()
+                val request = call.receive<UpdateNameRequest>()
+                UserRepository.updateName(username, request.name)
+                call.respond(HttpStatusCode.OK, "Name updated")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
+            }
+        }
+
+        post("/updateheight") {
+            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+            if (token == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Missing token")
+                return@post
+            }
+            try {
+                val decodedJWT = verifier.verify(token)
+                val username = decodedJWT.getClaim("username").asString()
+                val request = call.receive<UpdateHeightRequest>()
+                UserRepository.updateHeight(username, request.height)
+                call.respond(HttpStatusCode.OK, "Height updated")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
+            }
+        }
+
+        post("/updateweight") {
+            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+            if (token == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Missing token")
+                return@post
+            }
+            try {
+                val decodedJWT = verifier.verify(token)
+                val username = decodedJWT.getClaim("username").asString()
+                val request = call.receive<UpdateWeightRequest>()
+                UserRepository.updateWeight(username, request.weight)
+                call.respond(HttpStatusCode.OK, "Weight updated")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
+            }
+        }
+
 
         get("/userinfo") {
             val token = call.request.header("Authorization")?.removePrefix("Bearer ")

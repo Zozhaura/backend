@@ -35,6 +35,40 @@ object UserRepository {
         }
     }
 
+    fun updateName(username: String, name: String) {
+        val query = "UPDATE users SET name = ? WHERE username = ?"
+        Database.getConnection().use { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setString(1, name)
+                stmt.setString(2, username)
+                stmt.executeUpdate()
+            }
+        }
+    }
+
+    fun updateHeight(username: String, height: Double) {
+        val query = "UPDATE users SET height = ? WHERE username = ?"
+        Database.getConnection().use { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setDouble(1, height)
+                stmt.setString(2, username)
+                stmt.executeUpdate()
+            }
+        }
+    }
+
+    fun updateWeight(username: String, weight: Double) {
+        val query = "UPDATE users SET weight = ? WHERE username = ?"
+        Database.getConnection().use { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setDouble(1, weight)
+                stmt.setString(2, username)
+                stmt.executeUpdate()
+            }
+        }
+    }
+
+
     private fun resultSetToUser(rs: ResultSet): UserInfo {
         return UserInfo(
             username = rs.getString("username"),
@@ -46,4 +80,6 @@ object UserRepository {
             goalWeight = rs.getDouble("goal_weight")
         )
     }
+
+
 }
