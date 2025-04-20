@@ -68,6 +68,17 @@ object UserRepository {
         }
     }
 
+    fun updateGoal(username: String, goal: Double) {
+        val query = "UPDATE users SET goal_weight = ? WHERE username = ?"
+        Database.getConnection().use { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setDouble(1, goal)
+                stmt.setString(2, username)
+                stmt.executeUpdate()
+            }
+        }
+    }
+
 
     private fun resultSetToUser(rs: ResultSet): UserInfo {
         return UserInfo(

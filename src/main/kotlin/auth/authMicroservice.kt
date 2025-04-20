@@ -65,6 +65,9 @@ data class UpdateHeightRequest(val height: Double)
 @Serializable
 data class UpdateWeightRequest(val weight: Double)
 
+@Serializable
+data class UpdateGoalRequest(val goal: Double)
+
 fun hashPassword(password: String): String {
     return MessageDigest.getInstance("SHA-256")
         .digest(password.toByteArray())
@@ -161,6 +164,23 @@ fun Application.authModule() {
                 val request = call.receive<UpdateWeightRequest>()
                 UserRepository.updateWeight(username, request.weight)
                 call.respond(HttpStatusCode.OK, "Weight updated")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
+            }
+        }
+
+        post("/updategoal") {
+            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+            if (token == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Missing token")
+                return@post
+            }
+            try {
+                val decodedJWT = verifier.verify(token)
+                val username = decodedJWT.getClaim("username").asString()
+                val request = call.receive<UpdateGoalRequest>()
+                UserRepository.updateGoal(username, request.goal)
+                call.respond(HttpStatusCode.OK, "Goal updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
             }
