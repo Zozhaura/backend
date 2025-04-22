@@ -191,5 +191,4 @@ class AuthModuleTest {
         unmockkAll()
     }
 
-
 }

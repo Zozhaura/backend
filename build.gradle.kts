@@ -39,6 +39,10 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests:2.3.4")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("io.ktor:ktor-client-mock:2.3.4")
+    testImplementation("io.ktor:ktor-client-content-negotiation:2.3.4")
+    testImplementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
 tasks.test {

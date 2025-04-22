@@ -30,12 +30,12 @@ val json = Json {
     ignoreUnknownKeys = true
 }
 
-fun Application.myProxy() {
+fun Application.myProxy(client: HttpClient = HttpClient(CIO)) {
     install(ContentNegotiation) {
         json(Json { prettyPrint = true })
     }
 
-    val client = HttpClient(CIO)
+    //val client = HttpClient(CIO)
 
     environment.monitor.subscribe(ApplicationStopped) {
         client.close()
