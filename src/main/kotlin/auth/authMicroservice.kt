@@ -238,11 +238,23 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@post
             }
+            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
                 val request = call.receive<UpdateGoalRequest>()
                 UserRepository.updateGoal(username, request.goal)
+
+                logToCentralService(
+                    LogEntry(
+                        level = "INFO",
+                        message = "User ${username} updated goal",
+                        serviceName = "auth",
+                        status = 200,
+                        executionTime = System.currentTimeMillis() - start
+                    )
+                )
+
                 call.respond(HttpStatusCode.OK, "Goal updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
