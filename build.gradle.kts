@@ -35,6 +35,10 @@ dependencies {
     implementation("com.auth0:java-jwt:4.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    testImplementation("io.ktor:ktor-server-tests:2.3.4")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.mockk:mockk:1.13.5")
 }
 
 tasks.test {
@@ -42,7 +46,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "20"
+    kotlinOptions.jvmTarget = "17"
 }
 
 tasks.register("runUserImitation", JavaExec::class) {
