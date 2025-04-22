@@ -5,11 +5,14 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.request.*
 import kotlinx.serialization.json.Json
 import java.sql.DriverManager
+import io.ktor.http.*
+import kotlinx.serialization.Serializable  // Правильный импорт
 
 fun main() {
     embeddedServer(Netty, port = 8083, module = Application::myLogs).start(wait = true)
@@ -20,10 +23,14 @@ fun Application.myLogs() {
         json(Json { prettyPrint = true })
     }
 
+    install(CORS) {
+        anyHost()
+        allowHeader(HttpHeaders.ContentType)
+        allowMethod(HttpMethod.Post)
+    }
+
     val connection = DriverManager.getConnection(
-        "jdbc:clickhouse://localhost:8123/logs",
-        "default",
-        ""
+        "jdbc:clickhouse://localhost:8123/logs?user=logs_user&password=simple_password"
     )
 
     routing {
@@ -34,25 +41,29 @@ fun Application.myLogs() {
         post("/log") {
             val logEntry = call.receive<LogEntry>()
             try {
-                val statement = connection.prepareStatement("""
-        INSERT INTO logs.log_data (level, message, service_name, status, execution_time)
-        VALUES (?, ?, ?, ?, ?)
-    """.trimIndent())
-                statement.setString(1, logEntry.level)
-                statement.setString(2, logEntry.message)
-                statement.setString(3, logEntry.serviceName)
-                statement.setInt(4, logEntry.status)
-                statement.setLong(5, logEntry.executionTime)
-                statement.executeUpdate()
+                connection.prepareStatement("""
+                    INSERT INTO logs.log_data 
+                    (level, message, service_name, status, execution_time, timestamp)
+                    VALUES (?, ?, ?, ?, ?, now())
+                """.trimIndent()).use { stmt ->
+                    stmt.setString(1, logEntry.level)
+                    stmt.setString(2, logEntry.message)
+                    stmt.setString(3, logEntry.serviceName)
+                    stmt.setInt(4, logEntry.status)
+                    stmt.setLong(5, logEntry.executionTime)
+                    stmt.executeUpdate()
+                }
+                call.respond(mapOf("status" to "success"))
             } catch (e: Exception) {
-                call.respond(mapOf("status" to "error", "message" to "Failed to log data"))
-                return@post
+                println("Logging error: ${e.message}")
+                call.respond(mapOf("status" to "error", "message" to e.message))
             }
-
         }
     }
 }
 
+
+@Serializable
 data class LogEntry(
     val level: String,
     val message: String,
