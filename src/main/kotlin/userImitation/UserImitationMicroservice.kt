@@ -14,6 +14,9 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
+import logs.LogEntry
+import logs.logToCentralService
+
 
 fun main() {
     embeddedServer(Netty, port = 8084, module = Application::myUserImitation).start(wait = true)
@@ -44,6 +47,7 @@ fun Application.myUserImitation() {
 
 suspend fun simulateUsers(client: HttpClient) {
     while (true) {
+        val start = System.currentTimeMillis()
         val action = when (Random.nextInt(4)) {
             0 -> "recipes_search"
             1 -> "recipes_recommendation"
@@ -73,6 +77,16 @@ suspend fun simulateUsers(client: HttpClient) {
         try {
             val response: String = client.get("http://localhost:8080$url").body()
             println("Request sent to $url")
+
+            logToCentralService(
+                LogEntry(
+                    level = "INFO",
+                    message = "Request to $url successful",
+                    serviceName = "userImitation",
+                    status = 200,
+                    executionTime = System.currentTimeMillis() - start
+                )
+            )
         } catch (e: Exception) {
             println("Failed to send request to $url: ${e.message}")
         }

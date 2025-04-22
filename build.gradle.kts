@@ -34,7 +34,6 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
     implementation("com.auth0:java-jwt:4.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-
 }
 
 tasks.test {
@@ -42,7 +41,35 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.jvmTarget = "20"
+}
+
+tasks.register("runUserImitation", JavaExec::class) {
+    group = "application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("userImitation.UserImitationMicroserviceKt")
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
+tasks.register("runProxy", JavaExec::class) {
+    group = "application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("proxy.ProxyMicroserviceKt")
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
+tasks.register("runFood", JavaExec::class) {
+    group = "application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("food.FoodMicroserviceKt")
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
+tasks.register("runLogs", JavaExec::class) {
+    group = "application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("logs.LogsMicroserviceKt")
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
 }
 
 application {
