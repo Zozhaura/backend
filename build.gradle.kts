@@ -34,6 +34,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
     implementation("com.auth0:java-jwt:4.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 tasks.test {
