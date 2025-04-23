@@ -1,5 +1,3 @@
-package auth
-
 import auth.UserRepository
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
@@ -16,8 +14,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
-import logs.LogEntry
-import logs.logToCentralService
 
 val secret = "supersecretkey"
 val algorithm = Algorithm.HMAC256(secret)
@@ -95,18 +91,8 @@ fun Application.authModule() {
     routing {
         post("/login") {
             val request = call.receive<LoginRequest>()
-            val start = System.currentTimeMillis()
             val user = UserRepository.findUserByUsername(request.username)
             if (user != null && user.passwordHash == hashPassword(request.password)) {
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${request.username} logged in successfully",
-                        serviceName = "auth",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(AuthResponse(generateToken(request.username)))
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
@@ -115,17 +101,7 @@ fun Application.authModule() {
 
         post("/register") {
             val request = call.receive<AuthRequest>()
-            val start = System.currentTimeMillis()
             if (UserRepository.findUserByUsername(request.username) != null) {
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${request.username} already exists",
-                        serviceName = "auth",
-                        status = 409,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.Conflict, "User already exists")
             } else {
                 val newUser = UserInfo(
@@ -138,15 +114,6 @@ fun Application.authModule() {
                     goalWeight = request.goalWeight
                 )
                 UserRepository.createUser(newUser)
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${request.username} registered successfully",
-                        serviceName = "auth",
-                        status = 201,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.Created, AuthResponse(generateToken(request.username)))
             }
         }
@@ -157,21 +124,11 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@post
             }
-            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
                 val request = call.receive<UpdateNameRequest>()
                 UserRepository.updateName(username, request.name)
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${username} updated name to ${request.name}",
-                        serviceName = "auth",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.OK, "Name updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
@@ -184,21 +141,11 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@post
             }
-            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
                 val request = call.receive<UpdateHeightRequest>()
                 UserRepository.updateHeight(username, request.height)
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${username} updated height to ${request.height}",
-                        serviceName = "auth",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.OK, "Height updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
@@ -211,21 +158,11 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@post
             }
-            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
                 val request = call.receive<UpdateWeightRequest>()
                 UserRepository.updateWeight(username, request.weight)
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${username} updated weight to ${request.weight}",
-                        serviceName = "auth",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.OK, "Weight updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
@@ -238,23 +175,11 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@post
             }
-            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
                 val request = call.receive<UpdateGoalRequest>()
                 UserRepository.updateGoal(username, request.goal)
-
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "User ${username} updated goal",
-                        serviceName = "auth",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-
                 call.respond(HttpStatusCode.OK, "Goal updated")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request or token")
@@ -268,7 +193,6 @@ fun Application.authModule() {
                 call.respond(HttpStatusCode.Unauthorized, "Missing token")
                 return@get
             }
-            val start = System.currentTimeMillis()
             try {
                 val decodedJWT = verifier.verify(token)
                 val username = decodedJWT.getClaim("username").asString()
@@ -282,15 +206,6 @@ fun Application.authModule() {
                         gender = user.gender,
                         goalWeight = user.goalWeight
                     ))
-                    logToCentralService(
-                        LogEntry(
-                            level = "INFO",
-                            message = "User ${username} retrieved user information",
-                            serviceName = "auth",
-                            status = 200,
-                            executionTime = System.currentTimeMillis() - start
-                        )
-                    )
                 } else {
                     call.respond(HttpStatusCode.NotFound, "User not found")
                 }

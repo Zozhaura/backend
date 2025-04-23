@@ -14,9 +14,9 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
-import logs.LogEntry
-import logs.logToCentralService
-
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import org.slf4j.LoggerFactory
 
 fun main() {
     embeddedServer(Netty, port = 8084, module = Application::myUserImitation).start(wait = true)
@@ -29,25 +29,41 @@ fun Application.myUserImitation() {
 
     val client = HttpClient(CIO)
 
+    val imitationScope = CoroutineScope(Dispatchers.Default)
+
     environment.monitor.subscribe(ApplicationStopped) {
+        imitationScope.cancel()
         client.close()
     }
 
-    routing {
-        get("/hi") {
-            call.respond(mapOf("service" to "imitation", "message" to "Hi from myUserImitation"))
-        }
+    val semaphore = Semaphore(5)
+    val log = LoggerFactory.getLogger("Имитация")
+    var isImitationActive = true
 
+    routing {
         get("/start") {
-            launch { simulateUsers(client) }
+            repeat(10000) {
+                imitationScope.launch {
+                    semaphore.withPermit {
+                        try {
+                            simulateUsers(client)
+                        } catch (e: Exception) {
+                            log.error("simulateUsers error", e)
+                        }
+                    }
+                }
+            }
             call.respond(mapOf("status" to "started"))
+        }
+        get("/stop") {
+            isImitationActive = false
+            call.respond(mapOf("status" to "stopped"))
         }
     }
 }
 
 suspend fun simulateUsers(client: HttpClient) {
     while (true) {
-        val start = System.currentTimeMillis()
         val action = when (Random.nextInt(4)) {
             0 -> "recipes_search"
             1 -> "recipes_recommendation"
@@ -78,19 +94,10 @@ suspend fun simulateUsers(client: HttpClient) {
             val response: String = client.get("http://localhost:8080$url").body()
             println("Request sent to $url")
 
-            logToCentralService(
-                LogEntry(
-                    level = "INFO",
-                    message = "Request to $url successful",
-                    serviceName = "userImitation",
-                    status = 200,
-                    executionTime = System.currentTimeMillis() - start
-                )
-            )
         } catch (e: Exception) {
             println("Failed to send request to $url: ${e.message}")
         }
 
-        delay(1000)
+        delay(4000)
     }
 }

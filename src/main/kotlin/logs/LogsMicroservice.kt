@@ -12,7 +12,9 @@ import io.ktor.server.request.*
 import kotlinx.serialization.json.Json
 import java.sql.DriverManager
 import io.ktor.http.*
-import kotlinx.serialization.Serializable  // Правильный импорт
+import kotlinx.serialization.Serializable
+import java.io.FileInputStream
+import java.util.Properties
 
 fun main() {
     embeddedServer(Netty, port = 8083, module = Application::myLogs).start(wait = true)
@@ -29,8 +31,14 @@ fun Application.myLogs() {
         allowMethod(HttpMethod.Post)
     }
 
+    val props = Properties().apply {
+        load(FileInputStream("src/main/resources/clickhouse.properties"))
+    }
+
     val connection = DriverManager.getConnection(
-        "jdbc:clickhouse://localhost:8123/logs?user=logs_user&password=simple_password"
+        props.getProperty("clickhouse.url"),
+        props.getProperty("clickhouse.user"),
+        props.getProperty("clickhouse.password")
     )
 
     routing {
