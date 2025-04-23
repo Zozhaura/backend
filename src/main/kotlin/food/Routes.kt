@@ -4,8 +4,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import logs.LogEntry
-import logs.logToCentralService
 //Routes.kt
 fun Application.configureRouting() {
     routing {
@@ -76,41 +74,15 @@ fun Application.configureRouting() {
             val categories = call.request.queryParameters.getAll("category")
             val includeIngredients = call.request.queryParameters.getAll("includeIngredients")
             val excludeIngredients = call.request.queryParameters.getAll("excludeIngredients")
-            val start = System.currentTimeMillis()
 
-            try {
-                val recipes = RecipeService.searchRecipesByName(
-                    query = query,
-                    categories = categories,
-                    includeIngredients = includeIngredients,
-                    excludeIngredients = excludeIngredients
-                )
-
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "Successfully searched recipes with query: $query, categories: $categories, included ingredients: $includeIngredients, excluded ingredients: $excludeIngredients",
-                        serviceName = "food",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(recipes)
-            } catch (e: Exception) {
-
-                logToCentralService(
-                    LogEntry(
-                        level = "ERROR",
-                        message = "Error occurred while searching recipes: ${e.message}",
-                        serviceName = "food",
-                        status = 500,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(HttpStatusCode.InternalServerError, "Error occurred while searching recipes")
-            }
+            val recipes = RecipeService.searchRecipesByName(
+                query = query,
+                categories = categories,
+                includeIngredients = includeIngredients,
+                excludeIngredients = excludeIngredients
+            )
+            call.respond(recipes)
         }
-
 
         /**
          * Запрос на получение списка рекомендованных блюдна основе времени на сервере и исключающий ингредиенты, которые указал пользователь.
@@ -163,33 +135,8 @@ fun Application.configureRouting() {
          */
         get("/recipes_recommendation") {
             val excludeIngredients = call.request.queryParameters.getAll("excludeIngredients")
-            val start = System.currentTimeMillis()
-            try {
-                val recipes = RecipeService.getRecommendedRecipes(excludeIngredients)
-
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "Successfully recommended recipes excluding ingredients: $excludeIngredients",
-                        serviceName = "food",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(recipes)
-            } catch (e: Exception) {
-
-                logToCentralService(
-                    LogEntry(
-                        level = "ERROR",
-                        message = "Error occurred while recommending recipes: ${e.message}",
-                        serviceName = "food",
-                        status = 500,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(HttpStatusCode.InternalServerError, "Error occurred while recommending recipes")
-            }
+            val recipes = RecipeService.getRecommendedRecipes(excludeIngredients)
+            call.respond(recipes)
         }
 
         /**
@@ -249,58 +196,15 @@ fun Application.configureRouting() {
          */
         get("/recipe") {
             val recipeId = call.request.queryParameters["id"]?.toIntOrNull()
-            val start = System.currentTimeMillis()
             if (recipeId == null) {
-
-                logToCentralService(
-                    LogEntry(
-                        level = "ERROR",
-                        message = "Invalid recipe ID: ${call.request.queryParameters["id"]}",
-                        serviceName = "food",
-                        status = 400,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
                 call.respond(HttpStatusCode.BadRequest, "Некорректный ID рецепта")
                 return@get
             }
-            try {
-                val recipe = RecipeService.getRecipeById(recipeId)
-                if (recipe == null) {
-
-                    logToCentralService(
-                        LogEntry(
-                            level = "ERROR",
-                            message = "Recipe with ID $recipeId not found",
-                            serviceName = "food",
-                            status = 404,
-                            executionTime = System.currentTimeMillis() - start
-                        )
-                    )
-                    call.respond(HttpStatusCode.NotFound, "Рецепт с ID $recipeId не найден")
-                } else {
-                    logToCentralService(
-                        LogEntry(
-                            level = "INFO",
-                            message = "Successfully retrieved recipe with ID $recipeId",
-                            serviceName = "food",
-                            status = 200,
-                            executionTime = System.currentTimeMillis() - start
-                        )
-                    )
-                    call.respond(recipe)
-                }
-            } catch (e: Exception) {
-                logToCentralService(
-                    LogEntry(
-                        level = "ERROR",
-                        message = "Error occurred while retrieving recipe by ID $recipeId: ${e.message}",
-                        serviceName = "food",
-                        status = 500,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(HttpStatusCode.InternalServerError, "Error occurred while retrieving recipe")
+            val recipe = RecipeService.getRecipeById(recipeId)
+            if (recipe == null) {
+                call.respond(HttpStatusCode.NotFound, "Рецепт с ID $recipeId не найден")
+            } else {
+                call.respond(recipe)
             }
         }
 
@@ -345,33 +249,10 @@ fun Application.configureRouting() {
          */
         get("/products_search") {
             val query = call.request.queryParameters["name"]
-            val start = System.currentTimeMillis()
-            try {
-                val products = ProductService.searchProductsByName(query)
-
-                logToCentralService(
-                    LogEntry(
-                        level = "INFO",
-                        message = "Successfully searched products with query: $query",
-                        serviceName = "food",
-                        status = 200,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(products)
-            } catch (e: Exception) {
-
-                logToCentralService(
-                    LogEntry(
-                        level = "ERROR",
-                        message = "Error occurred while searching products: ${e.message}",
-                        serviceName = "food",
-                        status = 500,
-                        executionTime = System.currentTimeMillis() - start
-                    )
-                )
-                call.respond(HttpStatusCode.InternalServerError, "Error occurred while searching products")
-            }
+            val products = ProductService.searchProductsByName(query)
+            call.respond(products)
         }
+
+
     }
 }

@@ -20,6 +20,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.decodeFromString
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import logs.LogEntry
+import logs.logToCentralService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::myProxy).start(wait = true)
@@ -44,6 +46,7 @@ fun Application.myProxy(client: HttpClient = HttpClient(CIO)) {
     routing {
         route("/food/{action}") {
             handle {
+                val start = System.currentTimeMillis()
                 val action = call.parameters["action"] ?: return@handle call.respond(
                     HttpStatusCode.BadRequest, "Missing action"
                 )
@@ -74,6 +77,16 @@ fun Application.myProxy(client: HttpClient = HttpClient(CIO)) {
                         headers.appendAll(call.request.headers)
                     }.body()
 
+                    logToCentralService(
+                        LogEntry(
+                            level = "INFO",
+                            message = "$action успешно",
+                            serviceName = "food",
+                            status = HttpStatusCode.OK.value,
+                            executionTime = System.currentTimeMillis() - start
+                        )
+                    )
+
                     println(">>> Ответ от food-сервиса на /food/$fullUrl:")
                     println(foodResponse)
 
@@ -89,10 +102,18 @@ fun Application.myProxy(client: HttpClient = HttpClient(CIO)) {
                         )
                     )
 
-
-
                 } catch (e: Exception) {
                     println(">>> Ошибка при обращении к food-сервису на /food/$fullUrl: ${e.localizedMessage}")
+
+                    logToCentralService(
+                        LogEntry(
+                            level = "ERROR",
+                            message = "Ошибка: /food/$fullUrl: ${e.message}",
+                            serviceName = "food",
+                            status = 500,
+                            executionTime = System.currentTimeMillis() - start
+                        )
+                    )
 
                     call.respond(
                         HttpStatusCode.BadGateway,
@@ -112,32 +133,81 @@ fun Application.myProxy(client: HttpClient = HttpClient(CIO)) {
         }
 
         get("/imitation/{action}") {
+            val start = System.currentTimeMillis()
             val action = call.parameters["action"]
-            val response: String = client.get("http://localhost:8084/$action").body()
-            call.respond(response)
+
+            try {
+                val response: String = client.get("http://localhost:8084/$action").body()
+
+                logToCentralService(
+                    LogEntry(
+                        level = "INFO",
+                        message = "$action успешно",
+                        serviceName = "imitation",
+                        status = HttpStatusCode.OK.value,
+                        executionTime = System.currentTimeMillis() - start
+                    )
+                )
+
+                call.respond(response)
+            } catch (e: Exception) {
+                logToCentralService(
+                    LogEntry(
+                        level = "ERROR",
+                        message = "Ошибка: /imitation/$action: ${e.message}",
+                        serviceName = "imitation",
+                        status = 500,
+                        executionTime = System.currentTimeMillis() - start
+                    )
+                )
+            }
         }
 
         route("/auth/{action}") {
             handle {
+                val start = System.currentTimeMillis()
                 val action = call.parameters["action"]
                 val requestBody = call.receiveOrNull<String>()
 
-                val httpResponse = client.request("http://localhost:8085/$action") {
-                    method = call.request.httpMethod
-                    contentType(ContentType.Application.Json)
-                    requestBody?.let { setBody(it) }
-                    headers.appendAll(call.request.headers)
+                try {
+                    val httpResponse = client.request("http://localhost:8085/$action") {
+                        method = call.request.httpMethod
+                        contentType(ContentType.Application.Json)
+                        requestBody?.let { setBody(it) }
+                        headers.appendAll(call.request.headers)
+                    }
+
+                    val responseBytes = httpResponse.body<ByteArray>()
+                    val responseContentType = httpResponse.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+                    val status = httpResponse.status
+
+                    logToCentralService(
+                        LogEntry(
+                            level = "INFO",
+                            message = "$action успешно",
+                            serviceName = "auth",
+                            status = status.value,
+                            executionTime = System.currentTimeMillis() - start
+                        )
+                    )
+
+                    call.respondBytes(
+                        bytes = responseBytes,
+                        contentType = responseContentType ?: ContentType.Application.Json,
+                        status = status
+                    )
+                } catch (e: Exception) {
+                    logToCentralService(
+                        LogEntry(
+                            level = "ERROR",
+                            message = "Ошибка: /auth/$action: ${e.message}",
+                            serviceName = "auth",
+                            status = 500,
+                            executionTime = System.currentTimeMillis() - start
+                        )
+                    )
+                    throw e
                 }
-
-                val responseBytes = httpResponse.body<ByteArray>()
-                val responseContentType = httpResponse.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-                val status = httpResponse.status
-
-                call.respondBytes(
-                    bytes = responseBytes,
-                    contentType = responseContentType ?: ContentType.Application.Json,
-                    status = status
-                )
             }
         }
     }
