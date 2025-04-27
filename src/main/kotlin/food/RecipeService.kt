@@ -43,10 +43,11 @@ object RecipeService {
                 val subQuery = RecipeIngredient
                     .join(Ingredient, JoinType.INNER, RecipeIngredient.ingredientId, Ingredient.id)
                     .slice(RecipeIngredient.recipeId)
-                    .select { Ingredient.name inList includeIngredients }
-                    .groupBy(RecipeIngredient.recipeId)
-                    .having { RecipeIngredient.recipeId.count() eq includeIngredients.size.toLong() }
-
+                    .select {
+                        includeIngredients
+                            .map { ingredient -> Ingredient.name.lowerCase() like "%${ingredient.lowercase()}%" }
+                            .reduce { acc, expr -> (acc or expr) as LikeEscapeOp }
+                    }
 
                 baseQuery.andWhere { Recipe.id inSubQuery subQuery }
             }
@@ -56,7 +57,11 @@ object RecipeService {
                 val subQuery = RecipeIngredient
                     .join(Ingredient, JoinType.INNER, RecipeIngredient.ingredientId, Ingredient.id)
                     .slice(RecipeIngredient.recipeId)
-                    .select { Ingredient.name inList excludeIngredients }
+                    .select {
+                        excludeIngredients
+                            .map { ingredient -> Ingredient.name.lowerCase() like "%${ingredient.lowercase()}%" }
+                            .reduce { acc, expr -> (acc or expr) as LikeEscapeOp }
+                    }
 
                 baseQuery.andWhere { Recipe.id notInSubQuery subQuery }
             }

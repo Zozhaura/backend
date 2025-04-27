@@ -1,5 +1,10 @@
 package auth
 
+import AuthResponse
+import UserInfo
+import authModule
+import generateToken
+import hashPassword
 import io.ktor.server.testing.*
 import io.ktor.http.*
 import kotlin.test.*

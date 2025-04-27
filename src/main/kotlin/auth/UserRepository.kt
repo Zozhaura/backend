@@ -1,5 +1,6 @@
 package auth
 
+import UserInfo
 import java.sql.ResultSet
 
 object UserRepository {
